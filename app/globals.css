@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import 'katex/dist/katex.min.css';
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #f9fafb;
+  color: #1f2937;
+}
+
+/* Ensure Ethiopic script never silently falls back to an ugly system font
+   (SRS §12.3, §17). */
+:lang(am) {
+  font-family: var(--font-noto-ethiopic), sans-serif;
+}
+
+/* ---------------------------------------------------------------------------
+   Dark mode — applied via the `.dark` class on <html> (see ThemeProvider).
+   Rather than hand-editing every page's Tailwind classes, we retarget the
+   handful of light-mode utility classes used throughout the app so dark
+   mode "just works" consistently across pages. Component-level dark:
+   variants (Card, Button, Badge, etc.) still take precedence where present.
+--------------------------------------------------------------------------- */
+.dark body {
+  background-color: #0a0e17;
+}
+
+.dark .bg-white {
+  background-color: #111827 !important;
+}
+
+.dark .bg-bgneutral {
+  background-color: #0a0e17 !important;
+}
+
+.dark .bg-gray-50 {
+  background-color: #1f2937 !important;
+}
+
+.dark .bg-gray-100 {
+  background-color: #1f2937 !important;
+}
+
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: #374151 !important;
+}
+
+.dark .text-textneutral {
+  color: #f3f4f6 !important;
+}
+
+.dark .text-gray-400 {
+  color: #9ca3af !important;
+}
+
+.dark .text-gray-500 {
+  color: #9ca3af !important;
+}
+
+.dark .text-gray-600 {
+  color: #d1d5db !important;
+}
+
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #111827;
+  color: #f3f4f6;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #6b7280;
+}
