@@ -27,7 +27,7 @@ export function ResultsContent({
 
       <div className="mt-4 flex flex-col items-center gap-2 rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-card">
         <p className="text-xs font-medium uppercase tracking-wide text-gray-400">{t('yourScore')}</p>
-        <p className="font-heading text-4xl font-bold text-primary">
+        <p className="font-heading text-3xl font-bold text-primary">
           {attempt.score}/{attempt.total}
         </p>
         <p className="text-sm text-gray-500">{pct}%</p>
@@ -47,14 +47,21 @@ export function ResultsContent({
         {questions.map((q, i) => {
           const selected = attempt.answers?.[q.id];
           return (
-            <div key={q.id} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-card">
-              <p className="mb-3 text-sm font-semibold text-textneutral">
-                {i + 1}. {q.question_text}
+            <div key={q.id} className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-card dark:border-gray-800 dark:bg-gray-900">
+              <p className="mb-4 flex items-center gap-2.5 text-[15px] font-semibold leading-snug text-textneutral">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">{i + 1}</span>
+                <span>{q.question_text}</span>
               </p>
               <div className="flex flex-col gap-2">
-                {q.question_options.map((opt) => (
+                {q.question_type === 'short_answer' ? (
+                  <div className="text-sm">
+                    <p className="text-gray-500">Your answer: <span className="font-medium text-textneutral">{selected || '—'}</span></p>
+                    <p className="mt-1 text-gray-500">Correct answer: <span className="font-medium text-green-700">{(q.correct_text ?? '').split('|')[0]}</span></p>
+                  </div>
+                ) : q.question_options.map((opt, oi) => (
                   <QuizOptionResult
                     key={opt.id}
+                    index={oi}
                     label={opt.option_text}
                     isCorrect={opt.is_correct}
                     isSelected={selected === opt.id}

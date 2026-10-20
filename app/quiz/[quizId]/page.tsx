@@ -2,12 +2,13 @@ import { notFound } from 'next/navigation';
 import { getQuizById, getQuestionsForQuiz } from '@/lib/queries/quizzes';
 import { getLessonById, getLessonBreadcrumb } from '@/lib/queries/lessons';
 import { getCurrentUser } from '@/lib/queries/progress';
-import { submitQuiz } from '@/lib/actions';
+import { submitQuiz } from '@/lib/actions/learning';
 import { QuizPageContent } from './QuizPageContent';
 
 export const revalidate = 300;
 
-export default async function QuizPage({ params }: { params: { quizId: string } }) {
+export default async function QuizPage(props: { params: Promise<{ quizId: string }> }) {
+  const params = await props.params;
   const quiz = await getQuizById(params.quizId);
   if (!quiz) notFound();
 

@@ -26,7 +26,7 @@ export function SettingsContent() {
             <button
               key={key}
               onClick={() => setTheme(key)}
-              className={`relative flex flex-col items-center gap-2 rounded-xl border p-4 text-sm font-medium transition-colors ${
+              className={`relative flex flex-col items-center gap-2 rounded-xl border p-3 text-xs font-medium sm:p-4 sm:text-sm transition-colors ${
                 theme === key
                   ? 'border-primary bg-primary-50 text-primary dark:bg-primary/10'
                   : 'border-gray-200 text-gray-500 hover:border-gray-300'

@@ -37,19 +37,22 @@ export function LessonListContent({
       />
       <h1 className="mt-2 font-heading text-2xl font-bold text-textneutral">{topic.name}</h1>
       {topic.description && <p className="mt-1 text-sm text-gray-500">{topic.description}</p>}
+      <p className="mt-2">
+        <span className="rounded-full bg-primary-50 px-2.5 py-1 text-xs font-semibold text-primary">{t('lessonsCountText').replace('{n}', String(lessons.length))}</span>
+      </p>
 
-      <div className="mt-6 flex flex-col gap-3">
+      <div className="mt-4 flex flex-col gap-3">
         {lessons.map((lesson, i) => {
           const completed = loggedIn && progressMap[lesson.id];
           return (
             <CardLink key={lesson.id} href={`/lesson/${lesson.id}`}>
               <div className="flex items-center gap-3">
                 <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                    completed ? 'bg-success/10 text-success' : 'bg-primary-50 text-primary'
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-sm font-bold ${
+                    completed ? 'bg-success/10 text-success' : 'bg-gradient-to-br from-primary to-primary-dark text-white shadow-card'
                   }`}
                 >
-                  {completed ? <CheckCircle2 size={16} /> : i + 1}
+                  {completed ? <CheckCircle2 size={18} /> : i + 1}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="font-heading text-sm font-semibold text-textneutral">{lesson.title}</p>
@@ -60,15 +63,15 @@ export function LessonListContent({
                     </span>
                     {lesson.video_url && (
                       <span className="flex items-center gap-1">
-                        <Video size={12} /> video
+                        <Video size={12} /> {t('kindVideo')}
                       </span>
                     )}
                     <span className="flex items-center gap-1">
-                      <FileText size={12} /> notes
+                      <FileText size={12} /> {t('kindNotes')}
                     </span>
                     {lessonsWithQuiz.has(lesson.id) && (
                       <span className="flex items-center gap-1">
-                        <ClipboardCheck size={12} /> quiz
+                        <ClipboardCheck size={12} /> {t('kindQuiz')}
                       </span>
                     )}
                   </div>

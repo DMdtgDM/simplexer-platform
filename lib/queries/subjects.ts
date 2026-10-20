@@ -1,8 +1,9 @@
-import { createClient } from '@/lib/supabase/server';
+import { createPublicClient as createClient } from '@/lib/supabase/public';
+import { createClient as createUserClient } from '@/lib/supabase/server';
 import type { Subject, Topic } from '@/lib/types';
 
 export async function getSubjectBySlug(gradeId: string, slug: string): Promise<Subject | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from('subjects')
     .select('*')
@@ -13,7 +14,7 @@ export async function getSubjectBySlug(gradeId: string, slug: string): Promise<S
 }
 
 export async function getTopicsForSubject(subjectId: string): Promise<Topic[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from('topics')
     .select('*')
@@ -23,7 +24,7 @@ export async function getTopicsForSubject(subjectId: string): Promise<Topic[]> {
 }
 
 export async function getTopicBySlug(subjectId: string, slug: string): Promise<Topic | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from('topics')
     .select('*')
@@ -35,7 +36,7 @@ export async function getTopicBySlug(subjectId: string, slug: string): Promise<T
 
 /** Lesson count per topic, for the topic-list page. */
 export async function getLessonCountsByTopic(subjectId: string): Promise<Record<string, number>> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: topics } = await supabase.from('topics').select('id').eq('subject_id', subjectId);
   const topicIds = (topics ?? []).map((t: { id: string }) => t.id);
   if (topicIds.length === 0) return {};
@@ -56,7 +57,7 @@ export async function getSubjectCompletion(
   gradeId: string,
   userId: string
 ): Promise<Record<string, { total: number; completed: number }>> {
-  const supabase = createClient();
+  const supabase = await createUserClient();
 
   const { data: subjects } = await supabase.from('subjects').select('id').eq('grade_id', gradeId);
   const subjectIds = (subjects ?? []).map((s: { id: string }) => s.id);

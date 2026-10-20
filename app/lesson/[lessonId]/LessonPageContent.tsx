@@ -7,7 +7,7 @@ import { LessonContentRenderer } from '@/components/LessonContentRenderer';
 import { YouTubeEmbed } from '@/components/YouTubeEmbed';
 import { BookmarkButton } from '@/components/BookmarkButton';
 import { useLocale } from '@/components/LocaleProvider';
-import { markLessonComplete } from '@/lib/actions';
+import { markLessonComplete } from '@/lib/actions/learning';
 import { FileText, ChevronLeft, ChevronRight, CheckCircle2, Send, ArrowRight } from 'lucide-react';
 import { useTransition } from 'react';
 import type { Lesson } from '@/lib/types';
@@ -76,7 +76,7 @@ export function LessonPageContent({
       )}
 
       <div className="mt-6">
-        <LessonContentRenderer content={lesson.content} />
+        <LessonContentRenderer content={lesson.content} font={lesson.font} size={lesson.text_size} />
       </div>
 
       {lesson.attachment_url && (
@@ -87,7 +87,7 @@ export function LessonPageContent({
           className="mt-6 flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 text-sm hover:border-primary/40"
         >
           <FileText size={18} className="text-primary" />
-          <span className="flex-1">Download notes (PDF)</span>
+          <span className="flex-1">{t('downloadNotes')}</span>
           {lesson.attachment_size_kb && (
             <span className="text-xs text-gray-400">
               {lesson.attachment_size_kb < 1024
@@ -105,7 +105,7 @@ export function LessonPageContent({
         className="mt-4 flex items-center gap-3 rounded-xl border border-dashed border-gray-200 p-3 text-sm text-gray-500 hover:border-secondary/40 hover:text-secondary-dark"
       >
         <Send size={16} className="shrink-0" />
-        <span>Confused about this lesson? Ask on our Telegram channel.</span>
+        <span>{t('askTelegram')}</span>
       </a>
 
       {/* Progress / quiz actions */}
@@ -175,7 +175,7 @@ export function LessonPageContent({
           className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/20 bg-primary-50 p-4 hover:border-primary/40"
         >
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-primary/70">Since you finished this topic, try</p>
+            <p className="text-xs font-medium text-primary/70">{t('tryNextTopic')}</p>
             <p className="font-heading text-sm font-bold text-textneutral">{nextTopic.topicName}</p>
           </div>
           <ArrowRight size={18} className="shrink-0 text-primary" />

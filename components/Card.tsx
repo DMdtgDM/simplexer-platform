@@ -3,25 +3,17 @@ import type { ReactNode } from 'react';
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`rounded-2xl border border-gray-100 bg-white p-4 shadow-card dark:border-gray-800 dark:bg-gray-900 ${className}`}>
+    <div className={`rounded-2xl border border-gray-100 bg-white p-5 shadow-card dark:border-gray-800 dark:bg-gray-900 ${className}`}>
       {children}
     </div>
   );
 }
 
-export function CardLink({
-  children,
-  href,
-  className = '',
-}: {
-  children: ReactNode;
-  href: string;
-  className?: string;
-}) {
+export function CardLink({ children, href, className = '' }: { children: ReactNode; href: string; className?: string }) {
   return (
     <Link
       href={href}
-      className={`block rounded-2xl border border-gray-100 bg-white p-4 shadow-card transition-transform active:scale-[0.98] hover:border-primary/30 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-primary/50 ${className}`}
+      className={`group block rounded-2xl border border-gray-100 bg-white p-5 shadow-card transition duration-200 hover:-translate-y-1 hover:border-primary/30 hover:shadow-lift active:translate-y-0 active:scale-[0.99] dark:border-gray-800 dark:bg-gray-900 ${className}`}
     >
       {children}
     </Link>

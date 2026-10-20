@@ -33,15 +33,22 @@ export function SearchContent({ query, results }: { query: string; results: Sear
         <input
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="Search lessons and courses, e.g. projectile motion, Python..."
+          placeholder={t('searchTitle')}
           className="min-h-[44px] w-full text-sm focus:outline-none"
         />
       </form>
 
-      {query.length >= 2 && (
+      {query.length >= 2 && results.length > 0 && (
         <p className="mt-4 text-xs text-gray-400">
-          {results.length} result{results.length === 1 ? '' : 's'} for &ldquo;{query}&rdquo;
+          {t('searchResultsCount').replace('{n}', String(results.length)).replace('{q}', query)}
         </p>
+      )}
+
+      {query.length >= 2 && results.length === 0 && (
+        <div className="mt-6 rounded-2xl border border-gray-100 bg-white p-5 text-center shadow-card">
+          <p className="font-heading text-sm font-semibold text-textneutral">{t('noResultsTitle').replace('{q}', query)}</p>
+          <p className="mt-1 text-sm text-gray-500">{t('noResultsHint')}</p>
+        </div>
       )}
 
       <div className="mt-3 flex flex-col gap-2">
@@ -57,7 +64,7 @@ export function SearchContent({ query, results }: { query: string; results: Sear
               <Compass size={16} className="shrink-0 text-secondary-dark" />
             )}
             <span className="flex-1 text-sm font-medium text-textneutral">{r.title}</span>
-            <Badge tone={r.type === 'lesson' ? 'primary' : 'secondary'}>{r.type === 'lesson' ? 'Lesson' : 'Course'}</Badge>
+            <Badge tone={r.type === 'lesson' ? 'primary' : 'secondary'}>{r.type === 'lesson' ? t('typeLesson') : t('typeCourse')}</Badge>
           </Link>
         ))}
       </div>

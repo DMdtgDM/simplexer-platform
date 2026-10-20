@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 
 /** Bookmarked lesson ids for a user, as a Set for cheap `.has()` lookups. */
 export async function getBookmarkedLessonIds(userId: string): Promise<Set<string>> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase.from('bookmarks').select('lesson_id').eq('user_id', userId);
   return new Set((data ?? []).map((row: { lesson_id: string }) => row.lesson_id));
 }
@@ -11,7 +11,7 @@ export async function getBookmarkedLessonIds(userId: string): Promise<Set<string
 export async function getBookmarkedLessonDetails(
   userId: string
 ): Promise<{ lessonId: string; title: string; estMinutes: number; savedAt: string }[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: bookmarks } = await supabase
     .from('bookmarks')
     .select('lesson_id, created_at')

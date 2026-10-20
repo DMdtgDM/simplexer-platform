@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import type { Lesson } from '@/lib/types';
 
 export async function getLessonsForTopic(topicId: string): Promise<Lesson[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from('lessons')
     .select('*')
@@ -12,7 +12,7 @@ export async function getLessonsForTopic(topicId: string): Promise<Lesson[]> {
 }
 
 export async function getLessonsForCourse(courseId: string): Promise<Lesson[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from('lessons')
     .select('*')
@@ -22,14 +22,14 @@ export async function getLessonsForCourse(courseId: string): Promise<Lesson[]> {
 }
 
 export async function getLessonById(id: string): Promise<Lesson | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase.from('lessons').select('*').eq('id', id).maybeSingle();
   return data;
 }
 
 /** Recently published lessons for the homepage "featured" strip. */
 export async function getRecentLessons(limit = 4): Promise<Lesson[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from('lessons')
     .select('*')
@@ -40,7 +40,7 @@ export async function getRecentLessons(limit = 4): Promise<Lesson[]> {
 
 /** Fetches the quiz attached to a lesson, if any (id + title only, for the CTA). */
 export async function getQuizForLesson(lessonId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from('quizzes')
     .select('id, title')
@@ -63,7 +63,7 @@ export type LessonBreadcrumb =
     };
 
 export async function getLessonBreadcrumb(lesson: Lesson): Promise<LessonBreadcrumb | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   if (lesson.topic_id) {
     const { data: topic } = await supabase
@@ -134,7 +134,7 @@ export type NextTopicSuggestion = {
  */
 export async function getNextTopicSuggestion(lesson: Lesson): Promise<NextTopicSuggestion | null> {
   if (!lesson.topic_id) return null;
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data: topic } = await supabase
     .from('topics')

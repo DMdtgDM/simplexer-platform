@@ -8,7 +8,11 @@ const nextConfig = {
       { protocol: 'https', hostname: 'i.ytimg.com' },
     ],
   },
-  eslint: { ignoreDuringBuilds: true },
+  experimental: {
+    optimizePackageImports: ['lucide-react'],
+    // Remember pages you already opened, so going back or revisiting is instant.
+    staleTimes: { dynamic: 60, static: 300 },
+  },
 };
 
 export default nextConfig;

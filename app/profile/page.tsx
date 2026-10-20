@@ -3,6 +3,7 @@ import { getCurrentUser, getProgressForUser, getQuizAttemptsForUser } from '@/li
 import { getGrades } from '@/lib/queries/grades';
 import { getStreakForUser } from '@/lib/queries/activity';
 import { ProfileContent } from './ProfileContent';
+import { ProfileSettings } from '@/components/ProfileSettings';
 
 export const metadata = { title: 'Profile — Simplexer' };
 
@@ -21,6 +22,7 @@ export default async function ProfilePage() {
   const grade = grades.find((g) => g.id === user.profile?.grade_id) ?? null;
 
   return (
+    <>
     <ProfileContent
       profile={user.profile}
       email={user.authUser.email ?? ''}
@@ -30,5 +32,7 @@ export default async function ProfilePage() {
       quizAttempts={attempts}
       streak={streak}
     />
+    <ProfileSettings profile={user.profile} />
+    </>
   );
 }

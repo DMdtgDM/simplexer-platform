@@ -21,6 +21,11 @@ export default async function AdminPage() {
     );
   }
 
+  // Looking at the queues is what the review notifications asked for:
+  // clear them so the bell count drops after the admin has seen the work.
+  (await createClient()).from('notifications').update({ is_read: true })
+    .eq('user_id', user.authUser.id).eq('kind', 'review').eq('is_read', false);
+
   const [pendingCourses, users, pendingFormalLessons, assignments, grades, links] = await Promise.all([
     getPendingCourses(),
     getAllUsers(),

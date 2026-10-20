@@ -52,11 +52,11 @@ export function CourseOverviewContent({
       )}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Badge tone={difficultyTone[course.difficulty]}>{course.difficulty}</Badge>
-        {course.instructor && <span className="text-xs text-gray-500">by {course.instructor}</span>}
+        <Badge tone={difficultyTone[course.difficulty]}>{course.difficulty === 'beginner' ? t('diffBeginner') : course.difficulty === 'intermediate' ? t('diffIntermediate') : t('diffAdvanced')}</Badge>
+        {course.instructor && <span className="text-xs text-gray-500">{t('byInstructor').replace('{name}', course.instructor)}</span>}
         <span className="flex items-center gap-1 text-xs text-gray-400">
           <Clock size={12} />
-          {lessons.reduce((s, l) => s + l.est_minutes, 0)} {t('minRead')} total
+          {lessons.reduce((s, l) => s + l.est_minutes, 0)} {t('minRead')} {t('totalSuffix')}
         </span>
       </div>
 
@@ -64,7 +64,7 @@ export function CourseOverviewContent({
         <div className="mt-4">
           <ProgressBar percent={pct} />
           <p className="mt-1 text-xs text-gray-400">
-            {completedCount}/{lessons.length} lessons complete
+            {t('lessonsComplete').replace('{done}', String(completedCount)).replace('{total}', String(lessons.length))}
           </p>
         </div>
       )}
@@ -75,7 +75,7 @@ export function CourseOverviewContent({
         </ButtonLink>
       )}
 
-      <h2 className="mb-3 mt-8 font-heading text-lg font-bold text-textneutral">Syllabus</h2>
+      <h2 className="mb-3 mt-8 font-heading text-lg font-bold text-textneutral">{t('syllabus')}</h2>
       <div className="flex flex-col gap-2">
         {lessons.map((lesson, i) => {
           const completed = loggedIn && progressMap[lesson.id];
@@ -83,10 +83,10 @@ export function CourseOverviewContent({
             <Link
               key={lesson.id}
               href={`/lesson/${lesson.id}`}
-              className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 shadow-card hover:border-primary/30"
+              className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-card hover:border-primary/30"
             >
               <span
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold ${
                   completed ? 'bg-success/10 text-success' : 'bg-secondary/10 text-secondary-dark'
                 }`}
               >

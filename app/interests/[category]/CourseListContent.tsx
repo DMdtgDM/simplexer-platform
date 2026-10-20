@@ -28,9 +28,9 @@ export function CourseListContent({
       <h1 className="mt-2 font-heading text-2xl font-bold text-textneutral">{category.name}</h1>
 
       {courses.length === 0 ? (
-        <p className="mt-8 text-sm text-gray-400">No courses published in this category yet — check back soon.</p>
+        <p className="mt-8 text-sm text-gray-400">{t('noCoursesInCategory')}</p>
       ) : (
-        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {courses.map((course) => (
             <CardLink key={course.id} href={`/interests/${category.slug}/${course.slug}`} className="overflow-hidden !p-0">
               {course.cover_image_url && (
@@ -47,7 +47,7 @@ export function CourseListContent({
                   <p className="mt-1 line-clamp-2 text-xs text-gray-500">{course.description}</p>
                 )}
                 <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <Badge tone={difficultyTone[course.difficulty]}>{course.difficulty}</Badge>
+                  <Badge tone={difficultyTone[course.difficulty]}>{course.difficulty === 'beginner' ? t('diffBeginner') : course.difficulty === 'intermediate' ? t('diffIntermediate') : t('diffAdvanced')}</Badge>
                   <span className="text-xs text-gray-400">
                     {lessonCounts[course.id] ?? 0} {t('lessons')}
                   </span>

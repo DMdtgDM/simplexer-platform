@@ -1,3 +1,4 @@
+import { ReportButton } from '@/components/ReportButton';
 import { notFound } from 'next/navigation';
 import {
   getLessonById,
@@ -12,7 +13,8 @@ import { LessonPageContent } from './LessonPageContent';
 
 export const revalidate = 300;
 
-export default async function LessonPage({ params }: { params: { lessonId: string } }) {
+export default async function LessonPage(props: { params: Promise<{ lessonId: string }> }) {
+  const params = await props.params;
   const lesson = await getLessonById(params.lessonId);
   if (!lesson) notFound();
 
@@ -29,6 +31,7 @@ export default async function LessonPage({ params }: { params: { lessonId: strin
   const nextTopic = adjacent.next ? null : await getNextTopicSuggestion(lesson);
 
   return (
+    <>
     <LessonPageContent
       lesson={lesson}
       breadcrumb={breadcrumb}
@@ -39,5 +42,7 @@ export default async function LessonPage({ params }: { params: { lessonId: strin
       completed={completed}
       bookmarked={bookmarked}
     />
+    <ReportButton kind="lesson" target={lesson.id} />
+    </>
   );
 }

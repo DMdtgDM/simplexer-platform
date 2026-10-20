@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { Bookmark, BookmarkCheck } from 'lucide-react';
-import { toggleBookmark } from '@/lib/actions';
+import { toggleBookmark } from '@/lib/actions/learning';
 
 export function BookmarkButton({ lessonId, initiallyBookmarked }: { lessonId: string; initiallyBookmarked: boolean }) {
   const [bookmarked, setBookmarked] = useState(initiallyBookmarked);

@@ -4,18 +4,12 @@ import { useState, useTransition } from 'react';
 import { Button } from '@/components/Button';
 import { Badge } from '@/components/Badge';
 import {
-  approveCourse,
-  rejectCourse,
-  promoteUserRole,
-  approveFormalLesson,
-  rejectFormalLesson,
-  assignTeacherSubject,
-  unassignTeacherSubject,
-  addCommunityLink,
-  deleteCommunityLink,
-} from '@/lib/actions';
+  approveCourse, rejectCourse, promoteUserRole, approveFormalLesson, rejectFormalLesson, assignTeacherSubject, unassignTeacherSubject, addCommunityLink, deleteCommunityLink,
+} from '@/lib/actions/courses';
 import { Check, X, ChevronDown, ChevronUp, Trash2, Plus } from 'lucide-react';
 import type { Course, Grade, CommunityLink } from '@/lib/types';
+import { useLocale } from '@/components/LocaleProvider';
+import type { DictKey } from '@/lib/i18n/dictionary';
 
 type PendingCourse = Course & { submitter_name: string | null };
 type AdminUser = { id: string; name: string; email: string | null; role: string; created_at: string };
@@ -23,11 +17,11 @@ type PendingFormalLesson = { id: string; title: string; topicName: string; submi
 type Assignment = { id: string; teacherName: string; subjectName: string; gradeName: string };
 
 const TABS = [
-  { key: 'queue', label: 'Course Queue' },
-  { key: 'formal', label: 'Lesson Queue' },
-  { key: 'assignments', label: 'Assignments' },
-  { key: 'links', label: 'Links' },
-  { key: 'users', label: 'Users' },
+  { key: 'queue', label: 'courseQueue' },
+  { key: 'formal', label: 'lessonQueue' },
+  { key: 'assignments', label: 'assignments' },
+  { key: 'links', label: 'links' },
+  { key: 'users', label: 'users' },
 ] as const;
 
 export function AdminContent({
@@ -53,6 +47,7 @@ export function AdminContent({
   teachers: AdminUser[];
   links: CommunityLink[];
 }) {
+  const { t } = useLocale();
   const [tab, setTab] = useState<(typeof TABS)[number]['key']>('queue');
 
   const counts: Record<string, number> = {
@@ -62,17 +57,17 @@ export function AdminContent({
 
   return (
     <div className="pt-4 pb-10">
-      <h1 className="font-heading text-2xl font-bold text-textneutral">Admin</h1>
+      <h1 className="font-heading text-2xl font-bold text-textneutral">{t('admin')}</h1>
 
       <div className="mt-4 flex flex-wrap gap-1 rounded-xl border border-gray-200 bg-white p-1 text-sm">
-        {TABS.map((t) => (
+        {TABS.map((tabDef) => (
           <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`rounded-lg px-3 py-2 font-medium ${tab === t.key ? 'bg-primary text-white' : 'text-gray-500'}`}
+            key={tabDef.key}
+            onClick={() => setTab(tabDef.key)}
+            className={`rounded-lg px-3 py-2 font-medium ${tab === tabDef.key ? 'bg-primary text-white' : 'text-gray-500'}`}
           >
-            {t.label}
-            {counts[t.key] ? ` (${counts[t.key]})` : ''}
+            {t(tabDef.label as DictKey)}
+            {counts[tabDef.key] ? ` (${counts[tabDef.key]})` : ''}
           </button>
         ))}
       </div>
@@ -88,6 +83,8 @@ export function AdminContent({
   );
 }
 
+function EmptyNote() { const { t } = useLocale(); return <p className="mt-8 text-sm text-gray-400">{t('nothingWaiting')}</p>; }
+
 function ReviewQueue({
   pendingCourses,
   lessonsByCourse,
@@ -95,13 +92,14 @@ function ReviewQueue({
   pendingCourses: PendingCourse[];
   lessonsByCourse: Record<string, { title: string }[]>;
 }) {
+  const { t } = useLocale();
   const [expanded, setExpanded] = useState<string | null>(null);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [reason, setReason] = useState('');
   const [isPending, startTransition] = useTransition();
 
   if (pendingCourses.length === 0) {
-    return <p className="mt-8 text-sm text-gray-400">Nothing waiting for review right now.</p>;
+    return <EmptyNote />;
   }
 
   return (
@@ -115,7 +113,7 @@ function ReviewQueue({
                 by {course.submitter_name ?? 'Unknown'} · {course.difficulty}
               </p>
             </div>
-            <Badge tone="secondary">pending</Badge>
+            <Badge tone="secondary">{t('pending')}</Badge>
           </div>
 
           {course.description && <p className="mt-2 text-xs text-gray-600">{course.description}</p>}
@@ -145,14 +143,14 @@ function ReviewQueue({
               disabled={isPending}
               onClick={() => startTransition(async () => await approveCourse(course.id))}
             >
-              <Check size={14} /> Approve
+              <Check size={14} /> {t('approve')}
             </Button>
             <Button
               variant="outline"
               className="flex-1 border-error text-error hover:bg-error/5"
               onClick={() => setRejectingId(rejectingId === course.id ? null : course.id)}
             >
-              <X size={14} /> Reject
+              <X size={14} /> {t('reject')}
             </Button>
           </div>
 
@@ -163,7 +161,7 @@ function ReviewQueue({
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Reason for rejection (shown to the teacher)"
                 rows={2}
-                className="rounded-lg border border-gray-300 p-2 text-xs focus:border-primary focus:outline-none"
+                className="rounded-lg border border-gray-200 bg-gray-50 p-2 text-xs transition focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/15 dark:border-gray-700 dark:bg-gray-900 dark:focus:bg-gray-900"
               />
               <Button
                 variant="secondary"
@@ -187,12 +185,13 @@ function ReviewQueue({
 }
 
 function FormalLessonQueue({ pendingLessons }: { pendingLessons: PendingFormalLesson[] }) {
+  const { t } = useLocale();
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [reason, setReason] = useState('');
   const [isPending, startTransition] = useTransition();
 
   if (pendingLessons.length === 0) {
-    return <p className="mt-8 text-sm text-gray-400">No Formal Track lessons waiting for review.</p>;
+    return <p className="mt-8 text-sm text-gray-400">{t('noFormalWaiting')}</p>;
   }
 
   return (
@@ -215,14 +214,14 @@ function FormalLessonQueue({ pendingLessons }: { pendingLessons: PendingFormalLe
               disabled={isPending}
               onClick={() => startTransition(async () => await approveFormalLesson(lesson.id))}
             >
-              <Check size={14} /> Approve
+              <Check size={14} /> {t('approve')}
             </Button>
             <Button
               variant="outline"
               className="flex-1 border-error text-error hover:bg-error/5"
               onClick={() => setRejectingId(rejectingId === lesson.id ? null : lesson.id)}
             >
-              <X size={14} /> Reject
+              <X size={14} /> {t('reject')}
             </Button>
           </div>
           {rejectingId === lesson.id && (
@@ -232,7 +231,7 @@ function FormalLessonQueue({ pendingLessons }: { pendingLessons: PendingFormalLe
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Reason for rejection"
                 rows={2}
-                className="rounded-lg border border-gray-300 p-2 text-xs focus:border-primary focus:outline-none"
+                className="rounded-lg border border-gray-200 bg-gray-50 p-2 text-xs transition focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/15 dark:border-gray-700 dark:bg-gray-900 dark:focus:bg-gray-900"
               />
               <Button
                 variant="secondary"
@@ -304,7 +303,7 @@ function AssignmentsPanel({
           <select
             value={teacherId}
             onChange={(e) => setTeacherId(e.target.value)}
-            className="min-h-[40px] flex-1 rounded-lg border border-gray-300 px-2 text-sm focus:border-primary focus:outline-none"
+            className="min-h-[40px] flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm transition focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/15 dark:border-gray-700 dark:bg-gray-900 dark:focus:bg-gray-900"
           >
             {teachers.map((t) => (
               <option key={t.id} value={t.id}>
@@ -318,7 +317,7 @@ function AssignmentsPanel({
               setGradeId(e.target.value);
               setSubjectId('');
             }}
-            className="min-h-[40px] flex-1 rounded-lg border border-gray-300 px-2 text-sm focus:border-primary focus:outline-none"
+            className="min-h-[40px] flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm transition focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/15 dark:border-gray-700 dark:bg-gray-900 dark:focus:bg-gray-900"
           >
             {grades.map((g) => (
               <option key={g.id} value={g.id}>
@@ -329,7 +328,7 @@ function AssignmentsPanel({
           <select
             value={subjectId}
             onChange={(e) => setSubjectId(e.target.value)}
-            className="min-h-[40px] flex-1 rounded-lg border border-gray-300 px-2 text-sm focus:border-primary focus:outline-none"
+            className="min-h-[40px] flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm transition focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/15 dark:border-gray-700 dark:bg-gray-900 dark:focus:bg-gray-900"
           >
             <option value="">Select subject…</option>
             {subjects.map((s) => (
@@ -400,13 +399,13 @@ function LinksPanel({ links }: { links: CommunityLink[] }) {
           placeholder="Label (e.g. Discord)"
           value={label}
           onChange={(e) => setLabel(e.target.value)}
-          className="min-h-[40px] flex-1 rounded-lg border border-gray-300 px-2 text-sm focus:border-primary focus:outline-none"
+          className="min-h-[40px] flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm transition focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/15 dark:border-gray-700 dark:bg-gray-900 dark:focus:bg-gray-900"
         />
         <input
           placeholder="https://discord.gg/..."
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          className="min-h-[40px] flex-1 rounded-lg border border-gray-300 px-2 text-sm focus:border-primary focus:outline-none"
+          className="min-h-[40px] flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm transition focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/15 dark:border-gray-700 dark:bg-gray-900 dark:focus:bg-gray-900"
         />
         <select
           value={icon}
@@ -446,11 +445,18 @@ function LinksPanel({ links }: { links: CommunityLink[] }) {
 }
 
 function UserManagement({ users, currentUserId }: { users: AdminUser[]; currentUserId: string }) {
+  const { t } = useLocale();
   const [isPending, startTransition] = useTransition();
+  const [q, setQ] = useState('');
+  const needle = q.trim().toLowerCase();
+  const shown = needle ? users.filter((u) => u.name.toLowerCase().includes(needle) || (u.email ?? '').toLowerCase().includes(needle) || u.role.includes(needle)) : users;
 
   return (
     <div className="mt-6 flex flex-col gap-2">
-      {users.map((u) => (
+      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search users by name, email or role"
+        className="min-h-[44px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900" />
+      {shown.length === 0 && <p className="text-sm text-gray-400">{t('noUsersMatch')}</p>}
+      {shown.map((u) => (
         <div key={u.id} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-card">
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-textneutral">

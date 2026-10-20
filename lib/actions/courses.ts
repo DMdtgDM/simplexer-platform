@@ -1,121 +1,10 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { getQuestionsForQuiz } from '@/lib/queries/quizzes';
 import { slugify } from '@/lib/slugify';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-
-/**
- * Logs "this user did something today" for the streak counter. Upserts on
- * (user_id, activity_date) so calling it many times in one day is a no-op
- * after the first. Never throws — a failed streak log shouldn't break the
- * action that triggered it.
- */
-async function logActivity(supabase: ReturnType<typeof createClient>, userId: string) {
-  const today = new Date().toISOString().slice(0, 10);
-  await supabase
-    .from('daily_activity')
-    .upsert({ user_id: userId, activity_date: today }, { onConflict: 'user_id,activity_date', ignoreDuplicates: true });
-}
-
-export async function markLessonComplete(lessonId: string) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error('Must be logged in to track progress.');
-
-  await supabase.from('progress').upsert(
-    {
-      user_id: user.id,
-      lesson_id: lessonId,
-      completed: true,
-      completed_at: new Date().toISOString(),
-    },
-    { onConflict: 'user_id,lesson_id' }
-  );
-  await logActivity(supabase, user.id);
-
-  revalidatePath(`/lesson/${lessonId}`);
-  revalidatePath('/profile');
-  revalidatePath('/profile/progress');
-}
-
-export async function toggleBookmark(lessonId: string, currentlyBookmarked: boolean) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error('Must be logged in to save lessons.');
-
-  if (currentlyBookmarked) {
-    await supabase.from('bookmarks').delete().eq('user_id', user.id).eq('lesson_id', lessonId);
-  } else {
-    await supabase
-      .from('bookmarks')
-      .upsert({ user_id: user.id, lesson_id: lessonId }, { onConflict: 'user_id,lesson_id' });
-  }
-
-  revalidatePath(`/lesson/${lessonId}`);
-  revalidatePath('/profile/bookmarks');
-}
-
-export async function submitQuiz(quizId: string, formData: FormData) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error('Must be logged in to submit a quiz.');
-
-  const questions = await getQuestionsForQuiz(quizId);
-
-  let score = 0;
-  const answers: Record<string, string> = {};
-
-  for (const q of questions) {
-    const selected = formData.get(`q_${q.id}`) as string | null;
-    if (selected) {
-      answers[q.id] = selected;
-      const correctOption = q.question_options.find((o) => o.is_correct);
-      if (correctOption && correctOption.id === selected) score += 1;
-    }
-  }
-
-  const { data: attempt } = await supabase
-    .from('quiz_attempts')
-    .insert({
-      user_id: user.id,
-      quiz_id: quizId,
-      score,
-      total: questions.length,
-      answers,
-    })
-    .select('id')
-    .single();
-
-  // If the quiz is attached to a lesson, also mark that lesson complete.
-  const { data: quiz } = await supabase.from('quizzes').select('lesson_id').eq('id', quizId).maybeSingle();
-  if (quiz?.lesson_id) {
-    await supabase.from('progress').upsert(
-      {
-        user_id: user.id,
-        lesson_id: quiz.lesson_id,
-        completed: true,
-        completed_at: new Date().toISOString(),
-      },
-      { onConflict: 'user_id,lesson_id' }
-    );
-  }
-  await logActivity(supabase, user.id);
-
-  revalidatePath('/profile');
-  redirect(`/quiz/${quizId}/results?attempt=${attempt?.id}`);
-}
-
-// ---------------------------------------------------------------------------
-// Teacher course submission + admin review queue
-// ---------------------------------------------------------------------------
+import { randomUUID } from 'crypto';
 
 type LessonDraft = { title: string; content: string; video_url: string };
 
@@ -129,7 +18,7 @@ export async function submitCourseForReview(input: {
   coverImageUrl: string;
   lessons: LessonDraft[];
 }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -179,14 +68,14 @@ export async function submitCourseForReview(input: {
 }
 
 export async function approveCourse(courseId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.from('courses').update({ status: 'approved' }).eq('id', courseId);
   if (error) throw new Error(error.message);
   revalidatePath('/admin');
 }
 
 export async function rejectCourse(courseId: string, reason: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase
     .from('courses')
     .update({ status: 'rejected', rejection_reason: reason || 'No reason given.' })
@@ -196,7 +85,7 @@ export async function rejectCourse(courseId: string, reason: string) {
 }
 
 export async function promoteUserRole(userId: string, role: 'student' | 'teacher' | 'admin') {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.from('users').update({ role }).eq('id', userId);
   if (error) throw new Error(error.message);
   revalidatePath('/admin');
@@ -219,7 +108,7 @@ export async function updateCourseSubmission(
     lessons: { id?: string; title: string; content: string; video_url: string }[];
   }
 ) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -274,7 +163,7 @@ export async function updateCourseSubmission(
 }
 
 export async function deleteCourseSubmission(courseId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.from('courses').delete().eq('id', courseId);
   if (error) throw new Error(error.message);
   revalidatePath('/teach');
@@ -291,7 +180,7 @@ export async function submitFormalLesson(input: {
   content: string;
   videoUrl: string;
 }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -313,7 +202,7 @@ export async function submitFormalLesson(input: {
 }
 
 export async function deleteFormalLesson(lessonId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.from('lessons').delete().eq('id', lessonId);
   if (error) throw new Error(error.message);
   revalidatePath('/teach');
@@ -321,14 +210,14 @@ export async function deleteFormalLesson(lessonId: string) {
 }
 
 export async function approveFormalLesson(lessonId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.from('lessons').update({ status: 'approved' }).eq('id', lessonId);
   if (error) throw new Error(error.message);
   revalidatePath('/admin');
 }
 
 export async function rejectFormalLesson(lessonId: string, reason: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase
     .from('lessons')
     .update({ status: 'rejected', rejection_reason: reason || 'No reason given.' })
@@ -342,7 +231,7 @@ export async function rejectFormalLesson(lessonId: string, reason: string) {
 // ---------------------------------------------------------------------------
 
 export async function assignTeacherSubject(teacherId: string, subjectId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase
     .from('teacher_assignments')
     .insert({ teacher_id: teacherId, subject_id: subjectId });
@@ -351,14 +240,14 @@ export async function assignTeacherSubject(teacherId: string, subjectId: string)
 }
 
 export async function unassignTeacherSubject(assignmentId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.from('teacher_assignments').delete().eq('id', assignmentId);
   if (error) throw new Error(error.message);
   revalidatePath('/admin');
 }
 
 export async function addCommunityLink(input: { label: string; url: string; icon: string }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.from('community_links').insert({
     label: input.label,
     url: input.url,
@@ -371,7 +260,7 @@ export async function addCommunityLink(input: { label: string; url: string; icon
 }
 
 export async function deleteCommunityLink(id: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.from('community_links').delete().eq('id', id);
   if (error) throw new Error(error.message);
   revalidatePath('/admin');

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createPublicClient as createClient } from '@/lib/supabase/public';
 import type { Category, Course } from '@/lib/types';
 
 export async function getCategories(): Promise<Category[]> {

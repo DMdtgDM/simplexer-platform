@@ -6,11 +6,12 @@ import { TopicListContent } from './TopicListContent';
 
 export const revalidate = 300;
 
-export default async function SubjectPage({
-  params,
-}: {
-  params: { grade: string; subject: string };
-}) {
+export default async function SubjectPage(
+  props: {
+    params: Promise<{ grade: string; subject: string }>;
+  }
+) {
+  const params = await props.params;
   const grade = await getGradeBySlug(params.grade);
   if (!grade) notFound();
 

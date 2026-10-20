@@ -13,7 +13,7 @@ export type StreakInfo = {
  * is missed).
  */
 export async function getStreakForUser(userId: string): Promise<StreakInfo> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from('daily_activity')
     .select('activity_date')

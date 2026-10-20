@@ -6,11 +6,12 @@ import { CourseOverviewContent } from './CourseOverviewContent';
 
 export const revalidate = 300;
 
-export default async function CoursePage({
-  params,
-}: {
-  params: { category: string; course: string };
-}) {
+export default async function CoursePage(
+  props: {
+    params: Promise<{ category: string; course: string }>;
+  }
+) {
+  const params = await props.params;
   const category = await getCategoryBySlug(params.category);
   if (!category) notFound();
   const course = await getCourseBySlug(category.id, params.course);

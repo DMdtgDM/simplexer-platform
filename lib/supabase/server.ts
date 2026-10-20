@@ -4,8 +4,10 @@ import { cookies } from 'next/headers';
 // Server Component / Server Action / Route Handler client.
 // Uses the anon key + the caller's cookies, so RLS policies apply
 // exactly as they would for a logged-in browser session.
-export function createClient() {
-  const cookieStore = cookies();
+// Next 15+ makes cookies() async, so this factory is async too —
+// every caller must `await createClient()`.
+export async function createClient() {
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,7 +24,7 @@ export function createClient() {
             );
           } catch {
             // Called from a Server Component (not an action/route handler);
-            // safe to ignore since middleware refreshes the session cookie.
+            // safe to ignore since the proxy refreshes the session cookie.
           }
         },
       },

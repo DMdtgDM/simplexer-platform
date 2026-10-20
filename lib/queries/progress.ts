@@ -1,19 +1,23 @@
+import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import type { Progress, QuizAttempt } from '@/lib/types';
 
-export async function getCurrentUser() {
-  const supabase = createClient();
+export const getCurrentUser = cache(async () => {
+  const supabase = await createClient();
+  // getSession reads the signed cookie (no network). Fine for showing/hiding UI;
+  // every write is still checked by Supabase row-level security.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user;
   if (!user) return null;
 
   const { data: profile } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle();
   return { authUser: user, profile };
-}
+});
 
 export async function getProgressForUser(userId: string): Promise<Progress[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase.from('progress').select('*').eq('user_id', userId);
   return data ?? [];
 }
@@ -23,7 +27,7 @@ export async function getProgressForLessons(
   lessonIds: string[]
 ): Promise<Record<string, boolean>> {
   if (lessonIds.length === 0) return {};
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from('progress')
     .select('lesson_id, completed')
@@ -38,7 +42,7 @@ export async function getProgressForLessons(
 }
 
 export async function getQuizAttemptsForUser(userId: string): Promise<QuizAttempt[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from('quiz_attempts')
     .select('*')
@@ -51,7 +55,7 @@ export async function getQuizAttemptsForUser(userId: string): Promise<QuizAttemp
 export async function getCompletedLessonDetails(
   userId: string
 ): Promise<{ lessonId: string; title: string; completedAt: string | null }[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: progress } = await supabase
     .from('progress')
     .select('lesson_id, completed_at')
@@ -82,7 +86,7 @@ export async function getQuizAttemptDetails(
   const attempts = await getQuizAttemptsForUser(userId);
   if (attempts.length === 0) return [];
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const quizIds = [...new Set(attempts.map((a) => a.quiz_id))];
   const { data: quizzes } = await supabase.from('quizzes').select('id, title').in('id', quizIds);
   const titleMap: Record<string, string> = {};

@@ -5,15 +5,20 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/Button';
+import { field } from '@/components/Ui';
+import { PasswordField } from '@/components/PasswordField';
+import { friendlyAuthError } from '@/lib/authErrors';
 import { useLocale } from '@/components/LocaleProvider';
 
-export function LoginForm() {
+export function LoginForm({ next }: { next?: string }) {
   const router = useRouter();
   const { t } = useLocale();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // Same-site return path only — the same rule the auth callback applies.
+  const safeNext = next && next.startsWith('/') && !next.startsWith('//') && !next.startsWith('/\\') ? next : null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -23,10 +28,10 @@ export function LoginForm() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      setError(error.message);
+      setError(friendlyAuthError(error.message, t));
       return;
     }
-    router.push('/profile');
+    router.push(safeNext ?? '/profile');
     router.refresh();
   }
 
@@ -34,7 +39,9 @@ export function LoginForm() {
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback${safeNext ? `?next=${encodeURIComponent(safeNext)}` : ''}`,
+      },
     });
   }
 
@@ -61,12 +68,12 @@ export function LoginForm() {
             d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.59-2.59C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.94L3.68 7.27C4.38 5.16 6.36 3.58 9 3.58z"
           />
         </svg>
-        Continue with Google
+        {t('continueWithGoogle')}
       </button>
 
       <div className="my-4 flex items-center gap-3 text-xs text-gray-400">
         <div className="h-px flex-1 bg-gray-200" />
-        or
+        {t('orWord')}
         <div className="h-px flex-1 bg-gray-200" />
       </div>
 
@@ -74,19 +81,17 @@ export function LoginForm() {
         <input
           type="email"
           required
-          placeholder="Email"
+          placeholder={t('emailPh')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="min-h-[44px] rounded-xl border border-gray-300 px-3 text-sm focus:border-primary focus:outline-none"
+          className={field}
         />
-        <input
-          type="password"
-          required
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="min-h-[44px] rounded-xl border border-gray-300 px-3 text-sm focus:border-primary focus:outline-none"
-        />
+        <PasswordField value={password} onChange={setPassword} placeholder={t('passwordPh')} />
+        <div className="-mt-1 text-right">
+          <Link href="/forgot-password" className="text-xs font-medium text-primary hover:underline">
+            {t('forgotPassword')}
+          </Link>
+        </div>
         {error && <p className="text-xs text-error">{error}</p>}
         <Button type="submit" disabled={loading} className="mt-1 w-full">
           {loading ? '...' : t('login')}
@@ -94,8 +99,8 @@ export function LoginForm() {
       </form>
 
       <p className="mt-4 text-center text-xs text-gray-500">
-        No account?{' '}
-        <Link href="/signup" className="font-medium text-primary hover:underline">
+        {t('noAccount')}{' '}
+        <Link href={safeNext ? `/signup?next=${encodeURIComponent(safeNext)}` : '/signup'} className="font-medium text-primary hover:underline">
           {t('signup')}
         </Link>
       </p>

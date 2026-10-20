@@ -6,23 +6,23 @@ import { SubjectListContent } from './SubjectListContent';
 
 export const revalidate = 300;
 
-export default async function GradePage({ params }: { params: { grade: string } }) {
+export default async function GradePage(props: { params: Promise<{ grade: string }> }) {
+  const params = await props.params;
   const grade = await getGradeBySlug(params.grade);
   if (!grade) notFound();
 
-  const subjects = await getSubjectsForGrade(grade.id);
+  const [subjects, user] = await Promise.all([getSubjectsForGrade(grade.id), getCurrentUser()]);
 
-  // topic counts per subject
   const topicCounts: Record<string, number> = {};
-  await Promise.all(
-    subjects.map(async (s) => {
-      const topics = await getTopicsForSubject(s.id);
-      topicCounts[s.id] = topics.length;
-    })
-  );
-
-  const user = await getCurrentUser();
-  const completion = user ? await getSubjectCompletion(grade.id, user.authUser.id) : {};
+  const [, completion] = await Promise.all([
+    Promise.all(
+      subjects.map(async (s) => {
+        const topics = await getTopicsForSubject(s.id);
+        topicCounts[s.id] = topics.length;
+      })
+    ),
+    user ? getSubjectCompletion(grade.id, user.authUser.id) : Promise.resolve({}),
+  ]);
 
   return (
     <SubjectListContent

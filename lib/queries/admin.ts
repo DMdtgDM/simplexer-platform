@@ -3,7 +3,7 @@ import type { Course } from '@/lib/types';
 
 /** A teacher's own course submissions, any status. */
 export async function getMySubmittedCourses(userId: string): Promise<Course[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from('courses')
     .select('*')
@@ -24,7 +24,7 @@ export async function getCourseAnalytics(
   const result: Record<string, { started: number; finished: number; lessonCount: number }> = {};
   if (courseIds.length === 0) return result;
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: lessons } = await supabase.from('lessons').select('id, course_id').in('course_id', courseIds);
   const lessonsByCourse: Record<string, string[]> = {};
   (lessons ?? []).forEach((l: { id: string; course_id: string }) => {
@@ -71,7 +71,7 @@ export async function getCourseAnalytics(
 
 /** All pending courses awaiting admin review. */
 export async function getPendingCourses(): Promise<(Course & { submitter_name: string | null })[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: courses } = await supabase
     .from('courses')
     .select('*')
@@ -97,7 +97,7 @@ export async function getPendingCourses(): Promise<(Course & { submitter_name: s
 
 /** Every user, for the admin "manage roles" screen. */
 export async function getAllUsers() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase.from('users').select('id, name, email, role, created_at').order('created_at', {
     ascending: false,
   });
@@ -106,7 +106,7 @@ export async function getAllUsers() {
 
 /** Subjects a teacher has been assigned to (for the /teach Formal Track tab). */
 export async function getMyTeachingAssignments(teacherId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: assignments } = await supabase
     .from('teacher_assignments')
     .select('id, subject_id')
@@ -136,7 +136,7 @@ export async function getMyTeachingAssignments(teacherId: string) {
 
 /** All teacher_assignments joined with names, for the admin "Assign" panel. */
 export async function getAllTeachingAssignments() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: assignments } = await supabase
     .from('teacher_assignments')
     .select('id, teacher_id, subject_id, created_at')
@@ -147,7 +147,7 @@ export async function getAllTeachingAssignments() {
   const teacherIds = [...new Set(assignments.map((a: { teacher_id: string }) => a.teacher_id))];
   const subjectIds = [...new Set(assignments.map((a: { subject_id: string }) => a.subject_id))];
 
-  const supabase2 = createClient();
+  const supabase2 = await createClient();
   const [{ data: teachers }, { data: subjects }] = await Promise.all([
     supabase2.from('users').select('id, name').in('id', teacherIds),
     supabase2.from('subjects').select('id, name, grade_id').in('id', subjectIds),
@@ -175,7 +175,7 @@ export async function getAllTeachingAssignments() {
 
 /** Pending Formal Track lessons (individually submitted) awaiting review. */
 export async function getPendingFormalLessons() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: lessons } = await supabase
     .from('lessons')
     .select('id, title, topic_id, submitted_by')
@@ -209,7 +209,7 @@ export async function getPendingFormalLessons() {
 
 /** A teacher's own Formal Track lesson submissions, any status. */
 export async function getMyFormalLessonSubmissions(userId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: lessons } = await supabase
     .from('lessons')
     .select('id, title, topic_id, status, rejection_reason')

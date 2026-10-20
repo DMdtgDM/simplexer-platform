@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, GraduationCap, Compass, User } from 'lucide-react';
+import { Home, GraduationCap, Compass, Briefcase, Trophy, User } from 'lucide-react';
 import { useLocale } from './LocaleProvider';
 
 export function BottomNav() {
@@ -13,6 +13,8 @@ export function BottomNav() {
     { href: '/', label: t('home'), icon: Home },
     { href: '/formal', label: t('formalTrack').split(' ')[0], icon: GraduationCap },
     { href: '/interests', label: t('interestTrack').split(' ')[0], icon: Compass },
+    { href: '/jobs', label: t('jobs'), icon: Briefcase },
+    { href: '/competitions', label: t('compete'), icon: Trophy },
     { href: '/profile', label: t('profile'), icon: User },
   ];
 
@@ -25,11 +27,13 @@ export function BottomNav() {
             <Link
               key={href}
               href={href}
-              className={`flex min-h-[52px] flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium ${
-                active ? 'text-primary' : 'text-gray-400'
+              aria-current={active ? 'page' : undefined}
+              className={`relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-0.5 text-[11px] ${
+                active ? 'bg-primary-50 font-bold text-primary dark:bg-gray-900' : 'font-medium text-gray-400'
               }`}
             >
-              <Icon size={20} />
+              {active && <span className="absolute inset-x-3 top-0 h-1 rounded-b-full bg-primary" />}
+              <Icon size={active ? 22 : 20} strokeWidth={active ? 2.5 : 2} />
               {label}
             </Link>
           );

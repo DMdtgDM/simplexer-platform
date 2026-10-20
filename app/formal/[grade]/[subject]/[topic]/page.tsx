@@ -8,11 +8,12 @@ import { LessonListContent } from './LessonListContent';
 
 export const revalidate = 300;
 
-export default async function TopicPage({
-  params,
-}: {
-  params: { grade: string; subject: string; topic: string };
-}) {
+export default async function TopicPage(
+  props: {
+    params: Promise<{ grade: string; subject: string; topic: string }>;
+  }
+) {
+  const params = await props.params;
   const grade = await getGradeBySlug(params.grade);
   if (!grade) notFound();
   const subject = await getSubjectBySlug(grade.id, params.subject);
@@ -23,7 +24,7 @@ export default async function TopicPage({
   const lessons = await getLessonsForTopic(topic.id);
 
   // which lessons have a quiz attached
-  const supabase = createClient();
+  const supabase = await createClient();
   const lessonIds = lessons.map((l) => l.id);
   const { data: quizzes } = lessonIds.length
     ? await supabase.from('quizzes').select('lesson_id').in('lesson_id', lessonIds)
