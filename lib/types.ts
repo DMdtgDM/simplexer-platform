@@ -227,14 +227,15 @@ export type TutorProfile = {
   subjects: string[]; levels: string[]; languages: string[]; education: string; institution: string;
   gender?: 'male' | 'female' | null;
   field_of_study: string; national_exam: string; experience_years: number; bio: string;
-  mode: 'Online' | 'In person' | 'Both'; rate: number; availability: string; visible: boolean;
+  mode: 'Online' | 'In person' | 'Both'; rate: number | null; availability: string; visible: boolean;
+  interested_job_id: string | null;
   id_doc: string | null; education_doc: string | null; exam_doc: string | null; other_doc: string | null;
   admin_note: string; assessment_score: number | null; recommended: boolean;
   submitted_at: string | null; verified_at: string | null;
 };
 export type TutorCard = {
   user_id: string; name: string; city: string; subjects: string[]; levels: string[]; languages: string[];
-  mode: string; rate: number; experience_years: number; education: string; recommended: boolean;
+  mode: string; rate: number | null; experience_years: number; education: string; recommended: boolean;
 };
 export type TutorPublic = TutorCard & { field_of_study: string; bio: string; availability: string };
 export type ServiceRequest = {
