@@ -92,7 +92,7 @@ export function TutorForm({ uid, profile, jobId }: { uid: string; profile: Tutor
           <Field label={t('languagesYouTeach')}><TagInput name="languages" defaultValue={p?.languages} placeholder="Amharic" suggestions={['Amharic', 'English', 'Afaan Oromo', 'Tigrinya']} /></Field>
           <div><span className="mb-1 block text-sm font-semibold text-textneutral">{t('howDoYouTeach')}</span><Segmented<'Both' | 'Online' | 'In person'> value={mode} onChange={setMode} options={[{ id: 'Both', label: t('onlineAndInPerson') }, { id: 'Online', label: t('onlineOnly') }, { id: 'In person', label: t('inPersonOnly') }]} /></div>
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label={t('ratePerSession')}><input name="rate" type="number" min={0} defaultValue={p?.rate ?? 0} className={inputCls} /></Field>
+            <Field label={t('ratePerSession')}><input name="rate" type="number" min={0} defaultValue={p?.rate ?? ''} placeholder="Optional" className={inputCls} /></Field>
             <Field label={t('whenFree')}><input name="availability" defaultValue={p?.availability} placeholder="Weekday evenings, weekends" className={inputCls} /></Field>
           </div>
           <Field label={t('aboutYourTeaching')} hint={t('bioHint')}><textarea name="bio" rows={5} maxLength={800} defaultValue={p?.bio} className={inputCls} /></Field>
