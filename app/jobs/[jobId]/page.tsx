@@ -156,7 +156,7 @@ export default async function JobPage(
               <div key={a.id} className="flex items-start justify-between gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-card dark:border-gray-800 dark:bg-gray-900">
                 <div>
                   <p className="text-sm font-semibold text-textneutral">
-                    {a.applicant_name} <span className="font-normal text-gray-400">· {a.rate} ETB</span>
+                    {a.applicant_name}{a.rate > 0 && <span className="font-normal text-gray-400"> · {a.rate} ETB</span>}
                   </p>
                   <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{a.message}</p>
                 </div>
