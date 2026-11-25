@@ -30,7 +30,7 @@ export async function postJob(formData: FormData) {
     language: ['Amharic', 'English', 'Both'].includes(String(formData.get('language'))) ? String(formData.get('language')) : 'Amharic',
     gender_pref: ['male', 'female'].includes(String(formData.get('gender_pref'))) ? String(formData.get('gender_pref')) : 'any',
     poster_id: user.id,
-    poster_name: String(formData.get('for') ?? '').trim() || profile?.name || 'Simplexer',
+    poster_name: String(formData.get('for') ?? '').trim() || 'Simplexer',
     subject,
     grade: String(formData.get('grade') ?? '').trim() || null,
     mode: formData.get('mode') === 'In person' ? 'In person' : 'Online',
