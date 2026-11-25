@@ -82,8 +82,18 @@ export default async function JobPage(
   const isMatchedTutor = !!me && job.tutor_id === me;
   const verified = me ? await isVerifiedTutor(me) : false;
   const myTutor = me ? await getMyTutor(me) : null;
-  const canApply = !!me && (role === 'teacher' || verified) && job.status === 'open';
+  const canApply = !!me && (role === 'teacher' || verified || myTutor?.status === 'pending') && job.status === 'open';
   const applied = !!me && apps.some((a) => a.applicant_id === me);
+  // Admin view: each applicant's tutor status, so a not-yet-verified
+  // applicant is flagged right on the job (0032 — apply first, verify after).
+  const tutorStatus = new Map<string, string>();
+  if (isPoster && apps.length) {
+    const { data: tps } = await (await createClient())
+      .from('tutor_profiles')
+      .select('user_id, status')
+      .in('user_id', apps.map((a) => a.applicant_id));
+    for (const tp of tps ?? []) tutorStatus.set(tp.user_id, tp.status);
+  }
 
   return (
     <div className="pt-6">
@@ -156,7 +166,8 @@ export default async function JobPage(
               <div key={a.id} className="flex items-start justify-between gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-card dark:border-gray-800 dark:bg-gray-900">
                 <div>
                   <p className="text-sm font-semibold text-textneutral">
-                    {a.applicant_name}{a.rate > 0 && <span className="font-normal text-gray-400"> · {a.rate} ETB</span>}
+                    <Link href={`/admin/tutors/${a.applicant_id}`} className="text-primary hover:underline">{a.applicant_name}</Link>{a.rate > 0 && <span className="font-normal text-gray-400"> · {a.rate} ETB</span>}
+                    {tutorStatus.get(a.applicant_id) && tutorStatus.get(a.applicant_id) !== 'verified' && <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800 dark:bg-amber-900/50 dark:text-amber-200">{t('notVerifiedYet')}</span>}
                   </p>
                   <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{a.message}</p>
                 </div>
@@ -205,9 +216,6 @@ export default async function JobPage(
           {t('loginToApply')}
         </Link>
       )}
-      {me && !isPoster && job.status === 'open' && !canApply && myTutor?.status === 'pending' && (
-        <p className="mt-6 text-sm text-gray-500">{t('applyPendingNote')}</p>
-      )}
       {me && !isPoster && job.status === 'open' && !canApply && myTutor?.status === 'suspended' && (
         <p className="mt-6 text-sm text-gray-500">{t('onlyVerifiedApply')} <Link href="/tutor" className="text-primary underline">{t('becomeVerifiedLink')}</Link>.</p>
       )}
@@ -224,6 +232,7 @@ export default async function JobPage(
       {canApply && !applied && (
         <form action={applyToJob.bind(null, job.id)} className="mt-6 space-y-2 rounded-xl border border-gray-200 bg-white p-4 shadow-card dark:border-gray-800 dark:bg-gray-900">
           <h2 className="font-heading text-lg font-bold text-textneutral">{t('apply')}</h2>
+          {myTutor?.status === 'pending' && <p className="text-xs font-medium text-amber-600 dark:text-amber-400">{t('applyPendingNote')}</p>}
           <textarea name="message" required rows={3} placeholder={t('whyFitPlaceholder')} className={field} />
           <input name="rate" type="number" min={0} placeholder={t('ratePerSession')} className={field} />
           <button className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-primary-dark">
