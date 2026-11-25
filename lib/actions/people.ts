@@ -21,7 +21,7 @@ export async function saveTutorProfile(formData: FormData) {
     gender: ['male', 'female'].includes(f('gender')) ? f('gender') : null,
     experience_years: Math.min(60, Math.max(0, Number(f('experience_years')) || 0)), bio: f('bio').slice(0, 800),
     mode: ['Online', 'In person', 'Both'].includes(f('mode')) ? f('mode') : 'Both',
-    rate: Math.max(0, Number(f('rate')) || 0), availability: f('availability'), visible: formData.get('visible') === 'on',
+    rate: f('rate') === '' ? null : Math.max(0, Number(f('rate')) || 0), availability: f('availability'), visible: formData.get('visible') === 'on',
     id_doc: doc('id_doc'), education_doc: doc('education_doc'), exam_doc: doc('exam_doc'), other_doc: doc('other_doc'),
     ...(jobParam ? { interested_job_id: jobParam } : {}),
   };
