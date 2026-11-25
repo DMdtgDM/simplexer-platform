@@ -18,7 +18,7 @@ const DOCS: { kind: Kind; label: string; hint: string; required: boolean }[] = [
 ];
 const STEPS = ['About you', 'Teaching', 'Education', 'Documents', 'Submit'];
 
-export function TutorForm({ uid, profile }: { uid: string; profile: TutorProfile | null }) {
+export function TutorForm({ uid, profile, jobId }: { uid: string; profile: TutorProfile | null; jobId?: string }) {
   const { t } = useLocale();
   const docText: Record<Kind, { label: string; hint: string }> = {
     id_doc: { label: t('docId'), hint: t('docIdHint') },
@@ -68,6 +68,7 @@ export function TutorForm({ uid, profile }: { uid: string; profile: TutorProfile
     <form ref={formRef} action={saveTutorProfile} className="mt-6">
       {DOCS.map((d) => <input key={d.kind} type="hidden" name={d.kind} value={docs[d.kind]} />)}
       <input type="hidden" name="mode" value={mode} />
+      {jobId && <input type="hidden" name="job" value={jobId} />}
       <StepBar steps={[t('stepAbout'), t('stepTeaching'), t('stepEducation'), t('stepDocuments'), t('stepSubmit')]} current={step} onGo={go} />
 
       <div className={`${panel} mt-6`}>
