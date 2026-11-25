@@ -44,14 +44,15 @@ export default async function AdminTutors(
             <div className="flex flex-wrap items-center gap-3 p-4 pb-0 sm:p-5 sm:pb-0">
               <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-primary-light font-heading text-base font-extrabold text-white">{initials}</span>
               <div className="min-w-0 flex-1">
-                <p className="font-heading text-base font-bold text-textneutral">{displayName}</p>
+                <p className="font-heading text-base font-bold text-textneutral"><Link href={`/admin/tutors/${t.user_id}`} className="hover:underline">{displayName}</Link></p>
                 <p className="truncate text-xs text-gray-500">{t.email || 'no email'} · {t.phone || 'no phone'} · {[t.area, t.city].filter(Boolean).join(', ') || 'no location'}</p>
+                {t.submitted_at && <p className="text-[11px] text-gray-400">Applied {new Date(t.submitted_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>}
               </div>
               <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${statusTone}`}>{t.status}</span>
               {t.recommended && <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-[11px] font-semibold text-yellow-800">★ recommended</span>}
+              <Link href={`/admin/tutors/${t.user_id}`} className="text-xs font-semibold text-primary hover:underline">Full profile →</Link>
               <span className="rounded-2xl bg-primary-50 px-3 py-1.5 text-center">
-                <span className="block font-heading text-sm font-extrabold text-primary">{t.rate} ETB</span>
-                <span className="block text-[10px] text-gray-500">per session</span>
+                {t.rate ? (<><span className="block font-heading text-sm font-extrabold text-primary">{t.rate} ETB</span><span className="block text-[10px] text-gray-500">per session</span></>) : (<span className="block px-1 text-xs font-semibold text-gray-400">Rate not set</span>)}
               </span>
             </div>
             <div className="p-4 pt-3 sm:p-5 sm:pt-3">
@@ -59,6 +60,7 @@ export default async function AdminTutors(
               {t.subjects.length ? t.subjects.map((sub) => <span key={sub} className="rounded-full bg-primary-50 px-2 py-0.5 text-[11px] font-semibold text-primary">{sub}</span>) : <span className="text-xs text-gray-400">{tr('noSubjectsYet')}</span>}
               {t.levels.map((lv) => <span key={lv} className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600 dark:bg-gray-800">{lv}</span>)}
             </div>
+            {t.job_subject && t.interested_job_id && <p className="mt-2 text-xs text-gray-500">Came for: <Link href={`/jobs/${t.interested_job_id}`} className="font-semibold text-primary hover:underline">{t.job_subject}</Link></p>}
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{[t.education, t.institution, t.field_of_study].filter(Boolean).join(' · ')}{t.national_exam && ` · Exam: ${t.national_exam}`} · {t.mode} · {t.experience_years} yrs experience</p>
             {t.bio && <p className="mt-1 line-clamp-2 text-sm text-gray-500">{t.bio}</p>}
             <div className="mt-3 flex flex-wrap gap-2 text-xs">
