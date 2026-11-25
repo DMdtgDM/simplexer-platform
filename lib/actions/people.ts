@@ -9,6 +9,10 @@ const list = (v: FormDataEntryValue | null) => String(v ?? '').split(',').map((x
 export async function saveTutorProfile(formData: FormData) {
   const { supabase, user } = await authed();
   const f = (k: string) => String(formData.get(k) ?? '').trim();
+  // Apply funnel (0030): the job this person originally clicked Apply on, if
+  // any. Remembered on the profile so verification can send them back to it.
+  const jobParam = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(f('job')) ? f('job') : null;
+  const jobQs = jobParam ? '&job=' + jobParam : '';
   const doc = (k: string) => (f(k).startsWith(user.id + '/') ? f(k) : null); // only files in your own folder
   const row = {
     user_id: user.id, legal_name: f('legal_name'), phone: f('phone'), city: f('city'), area: f('area'),
@@ -19,6 +23,7 @@ export async function saveTutorProfile(formData: FormData) {
     mode: ['Online', 'In person', 'Both'].includes(f('mode')) ? f('mode') : 'Both',
     rate: Math.max(0, Number(f('rate')) || 0), availability: f('availability'), visible: formData.get('visible') === 'on',
     id_doc: doc('id_doc'), education_doc: doc('education_doc'), exam_doc: doc('exam_doc'), other_doc: doc('other_doc'),
+    ...(jobParam ? { interested_job_id: jobParam } : {}),
   };
   const submit = f('intent') === 'submit';
   if (submit) {
@@ -27,7 +32,7 @@ export async function saveTutorProfile(formData: FormData) {
       !row.subjects.length && 'at least one subject', !row.levels.length && 'the levels you teach',
       !row.education && 'your education level', !row.gender && 'your gender (needed when a family asks for a male or female tutor)', !row.id_doc && 'a photo or scan of your national ID', !row.education_doc && 'a certificate or transcript',
     ].filter(Boolean);
-    if (missing.length) redirect('/tutor?error=' + enc('To submit, add: ' + missing.join(', ') + '.'));
+    if (missing.length) redirect('/tutor?error=' + enc('To submit, add: ' + missing.join(', ') + '.') + jobQs);
   }
   const { data: existing } = await supabase.from('tutor_profiles').select('status').eq('user_id', user.id).maybeSingle();
   if (existing?.status === 'suspended') redirect('/tutor?error=' + enc('Your tutor profile is suspended. Contact the Simplexer team.'));
@@ -37,7 +42,7 @@ export async function saveTutorProfile(formData: FormData) {
     await supabase.from('tutor_profiles').update({ status: 'pending' }).eq('user_id', user.id);
   }
   revalidatePath('/tutor');
-  redirect('/tutor?ok=' + enc(submit ? 'Submitted. We will review your documents and get back to you.' : 'Saved.'));
+  redirect('/tutor?ok=' + enc(submit ? 'Submitted. We will review your documents and get back to you.' : 'Saved.') + jobQs);
 }
 
 export async function reviewTutor(userId: string, formData: FormData) {
