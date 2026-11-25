@@ -62,7 +62,7 @@ export default async function TutorsPage(
                   {tu.recommended && <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-[11px] font-semibold text-yellow-800 dark:bg-yellow-950/60 dark:text-yellow-200">{t('recommendedBadge')}</span>}
                 </div>
                 <p className="mt-1 text-sm text-textneutral">{tu.subjects.join(', ')}</p>
-                <p className="text-xs text-gray-500">{tu.levels.join(', ')} · {tu.mode}{tu.city ? ` · ${tu.city}` : ''} · {t('tutorCardMeta').replace('{years}', String(tu.experience_years)).replace('{rate}', String(tu.rate))}</p>
+                <p className="text-xs text-gray-500">{tu.levels.join(', ')} · {tu.mode}{tu.city ? ` · ${tu.city}` : ''} · {t('tutorCardMeta').replace('{years}', String(tu.experience_years)).replace('{rate}', tu.rate ? String(tu.rate) : '—')}</p>
               </div>
             </div>
           </Link>
