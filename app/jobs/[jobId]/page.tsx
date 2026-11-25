@@ -1,8 +1,10 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { createPublicClient } from '@/lib/supabase/public';
 import { getCurrentUser } from '@/lib/queries/progress';
 import { getJob, getApplications } from '@/lib/queries/jobs';
-import { isVerifiedTutor } from '@/lib/queries/tutors';
+import { isVerifiedTutor, getMyTutor } from '@/lib/queries/tutors';
 import {
   applyToJob, acceptApplicant, closeJob, reopenJob, deleteJob,
 } from '@/lib/actions/jobs';
@@ -12,6 +14,44 @@ import { field } from '@/components/Ui';
 import { serverT } from '@/lib/i18n/server';
 
 export const dynamic = 'force-dynamic';
+
+// Share cards use only the anonymised fields the public job listing shows:
+// subject, grade, area and schedule. No names, no contact details.
+export async function generateMetadata(props: { params: Promise<{ jobId: string }> }): Promise<Metadata> {
+  const params = await props.params;
+  try {
+    const supabase = createPublicClient();
+    const { data } = await supabase
+      .from('jobs')
+      .select('subject, grade, mode, city, area, schedule, sessions_per_week')
+      .eq('id', params.jobId)
+      .maybeSingle();
+    if (data) {
+      const where =
+        data.mode === 'In person' ? [data.area, data.city].filter(Boolean).join(', ') : '';
+      const title = `${data.subject} tutor needed${data.grade ? ` — ${data.grade}` : ''} — Simplexer`;
+      const description =
+        [
+          `${data.subject} tutoring${data.grade ? ` for ${data.grade}` : ''}`,
+          data.mode,
+          where,
+          `${data.sessions_per_week}x per week`,
+          data.schedule,
+        ]
+          .filter(Boolean)
+          .join(' · ') + '. See the job and apply on Simplexer.';
+      return {
+        title,
+        description,
+        openGraph: { title, description, type: 'website', siteName: 'Simplexer', url: `/jobs/${params.jobId}` },
+        twitter: { card: 'summary_large_image', title, description },
+      };
+    }
+  } catch {
+    // Fall back to the site defaults from the root layout.
+  }
+  return {};
+}
 
 export default async function JobPage(
   props: {
@@ -41,6 +81,7 @@ export default async function JobPage(
   const isPoster = role === 'admin';
   const isMatchedTutor = !!me && job.tutor_id === me;
   const verified = me ? await isVerifiedTutor(me) : false;
+  const myTutor = me ? await getMyTutor(me) : null;
   const canApply = !!me && (role === 'teacher' || verified) && job.status === 'open';
   const applied = !!me && apps.some((a) => a.applicant_id === me);
 
@@ -160,12 +201,24 @@ export default async function JobPage(
 
       {!isPoster && job.status !== 'open' && <p className="mt-6 text-sm text-gray-500">{t('jobFilledNote')}</p>}
       {!me && job.status === 'open' && (
-        <Link href="/login" className="mt-6 inline-block text-sm font-semibold text-primary">
+        <Link href={`/login?next=${encodeURIComponent(`/jobs/${job.id}`)}`} className="mt-6 inline-block text-sm font-semibold text-primary">
           {t('loginToApply')}
         </Link>
       )}
-      {me && !isPoster && job.status === 'open' && !canApply && (
+      {me && !isPoster && job.status === 'open' && !canApply && myTutor?.status === 'pending' && (
+        <p className="mt-6 text-sm text-gray-500">{t('applyPendingNote')}</p>
+      )}
+      {me && !isPoster && job.status === 'open' && !canApply && myTutor?.status === 'suspended' && (
         <p className="mt-6 text-sm text-gray-500">{t('onlyVerifiedApply')} <Link href="/tutor" className="text-primary underline">{t('becomeVerifiedLink')}</Link>.</p>
+      )}
+      {me && !isPoster && job.status === 'open' && !canApply && myTutor?.status !== 'pending' && myTutor?.status !== 'suspended' && (
+        <div className="mt-6 rounded-xl border border-gray-200 bg-white p-4 shadow-card dark:border-gray-800 dark:bg-gray-900">
+          <h2 className="font-heading text-lg font-bold text-textneutral">{t('apply')}</h2>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{t('applyNeedsTutorApp')}</p>
+          <Link href={`/tutor?job=${job.id}`} className="mt-3 inline-block rounded-full bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-primary-dark">
+            {t('applyStartTutorApp')}
+          </Link>
+        </div>
       )}
       {canApply && applied && <p className="mt-6 text-sm text-green-600">{t('youApplied')}</p>}
       {canApply && !applied && (
