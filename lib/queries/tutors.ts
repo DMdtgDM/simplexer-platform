@@ -39,16 +39,44 @@ export async function getTutorsForAdmin() {
   const who = new Map((users ?? []).map((u) => [u.id as string, u as { name: string; email: string | null }]));
   const sign = async (path: string | null) =>
     path ? (await supabase.storage.from('tutor-docs').createSignedUrl(path, 900)).data?.signedUrl ?? null : null;
+  const jobIds = [...new Set(tutors.map((t) => t.interested_job_id).filter((x): x is string => !!x))];
+  const { data: jobs } = jobIds.length
+    ? await supabase.from('jobs').select('id, subject, status').in('id', jobIds)
+    : { data: [] as { id: string; subject: string; status: string }[] };
+  const jobById = new Map((jobs ?? []).map((j) => [j.id as string, j as { id: string; subject: string; status: string }]));
   const rows = await Promise.all(
     tutors.map(async (t) => ({
       ...t,
       name: who.get(t.user_id)?.name ?? '',
       email: who.get(t.user_id)?.email ?? '',
+      job_subject: t.interested_job_id ? jobById.get(t.interested_job_id)?.subject ?? null : null,
       links: { id: await sign(t.id_doc), education: await sign(t.education_doc), exam: await sign(t.exam_doc), other: await sign(t.other_doc) },
     }))
   );
   const rank = { pending: 0, draft: 3, rejected: 2, verified: 1, suspended: 4 } as const;
   return rows.sort((a, b) => rank[a.status] - rank[b.status]);
+}
+
+export async function getTutorForAdmin(userId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase.from('tutor_profiles').select('*').eq('user_id', userId).maybeSingle();
+  if (!data) return null;
+  const t = data as TutorProfile;
+  const { data: who } = await supabase.from('users').select('name, email').eq('id', userId).maybeSingle();
+  const sign = async (path: string | null) =>
+    path ? (await supabase.storage.from('tutor-docs').createSignedUrl(path, 900)).data?.signedUrl ?? null : null;
+  let job: { id: string; subject: string; status: string } | null = null;
+  if (t.interested_job_id) {
+    const { data: j } = await supabase.from('jobs').select('id, subject, status').eq('id', t.interested_job_id).maybeSingle();
+    job = (j as { id: string; subject: string; status: string } | null) ?? null;
+  }
+  return {
+    ...t,
+    name: who?.name ?? '',
+    email: who?.email ?? '',
+    job,
+    links: { id: await sign(t.id_doc), education: await sign(t.education_doc), exam: await sign(t.exam_doc), other: await sign(t.other_doc) },
+  };
 }
 
 export async function getMyRequests(uid: string): Promise<ServiceRequest[]> {
