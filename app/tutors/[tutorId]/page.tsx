@@ -1,5 +1,8 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { createPublicClient } from '@/lib/supabase/public';
+import type { TutorPublic } from '@/lib/types';
 import { getTutorPublic } from '@/lib/queries/tutors';
 import { getCurrentUser } from '@/lib/queries/progress';
 import { card, btn } from '@/components/Ui';
@@ -8,6 +11,33 @@ import { serverT } from '@/lib/i18n/server';
 import { BadgeCheck, Star, Eye } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata(props: { params: Promise<{ tutorId: string }> }): Promise<Metadata> {
+  const params = await props.params;
+  try {
+    const supabase = createPublicClient();
+    const { data } = await supabase.rpc('tutor_public', { uid: params.tutorId });
+    const tutor = ((data as TutorPublic[] | null) ?? [])[0];
+    if (tutor) {
+      const title = `${tutor.name} — Simplexer`;
+      const bio = tutor.bio?.replace(/\s+/g, ' ').trim();
+      const description = bio
+        ? bio.length > 160
+          ? `${bio.slice(0, 157).trimEnd()}...`
+          : bio
+        : `${tutor.name} teaches ${tutor.subjects.join(', ')}${tutor.city ? ` in ${tutor.city}` : ''}. Book tutoring on Simplexer.`;
+      return {
+        title,
+        description,
+        openGraph: { title, description, type: 'profile', siteName: 'Simplexer', url: `/tutors/${params.tutorId}` },
+        twitter: { card: 'summary_large_image', title, description },
+      };
+    }
+  } catch {
+    // Fall back to the site defaults from the root layout.
+  }
+  return {};
+}
 
 export default async function TutorDetail(props: { params: Promise<{ tutorId: string }> }) {
   const params = await props.params;
@@ -64,8 +94,7 @@ export default async function TutorDetail(props: { params: Promise<{ tutorId: st
             </div>
           </div>
           <div className="text-right">
-            <p className="font-heading text-xl font-extrabold">{tutor.rate} <span className="text-xs font-semibold">ETB</span></p>
-            <p className="text-[11px] text-white/80">{t('perSession')}</p>
+            {tutor.rate ? (<><p className="font-heading text-xl font-extrabold">{tutor.rate} <span className="text-xs font-semibold">ETB</span></p><p className="text-[11px] text-white/80">{t('perSession')}</p></>) : (<p className="font-heading text-sm font-bold">Rate not set</p>)}
           </div>
         </div>
       </div>
