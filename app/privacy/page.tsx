@@ -15,8 +15,7 @@ export default function PrivacyPage() {
       <h2 className="font-heading">Information we collect</h2>
       <p>
         <strong>Account information.</strong> When you create an account, we store your email
-        address and a securely hashed password. If you sign in with Google, we receive your
-        name, email address, and profile picture from Google.
+        address and a securely hashed password.
       </p>
       <p>
         <strong>Profile and tutoring information.</strong> If you add profile details or apply
