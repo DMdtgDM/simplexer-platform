@@ -73,18 +73,6 @@ export function SignupForm({ grades, next }: { grades: Grade[]; next?: string })
     }
   }
 
-  async function handleGoogleSignup() {
-    // The account-type choice leaves with the browser to Google and
-    // back; the profile page applies it once after the callback.
-    try { localStorage.setItem('sx_intent', accountType); } catch { /* private mode */ }
-    const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback${safeNext ? `?next=${encodeURIComponent(safeNext)}` : ''}`,
-      },
-    });
-  }
 
   if (done) {
     return (
@@ -130,20 +118,9 @@ export function SignupForm({ grades, next }: { grades: Grade[]; next?: string })
         </div>
       </div>
 
-      <button
-        onClick={handleGoogleSignup}
-        className="mt-5 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-gray-300 text-sm font-medium hover:bg-gray-50"
-      >
-        {t('continueWithGoogle')}
-      </button>
 
-      <div className="my-4 flex items-center gap-3 text-xs text-gray-400">
-        <div className="h-px flex-1 bg-gray-200" />
-        {t('orWord')}
-        <div className="h-px flex-1 bg-gray-200" />
-      </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+      <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-3">
         <input
           type="text"
           required
