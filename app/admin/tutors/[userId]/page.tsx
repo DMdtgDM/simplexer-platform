@@ -45,7 +45,7 @@ export default async function AdminTutorDetail(props: { params: Promise<{ userId
             <p className="font-heading text-xl font-bold text-textneutral">{displayName}</p>
             <p className="text-sm text-gray-500">
               {t.email ? <a href={`mailto:${t.email}`} className="text-primary hover:underline">{t.email}</a> : 'no email'}
-              {t.phone && <> · <a href={`tel:${t.phone}`} className="text-primary hover:underline">{t.phone}</a></>}
+              {t.phone ? <> · <a href={`tel:${t.phone}`} className="text-primary hover:underline">{t.phone}</a></> : <> · <span className="text-gray-400">No phone provided</span></>}
               {[t.area, t.city].filter(Boolean).length ? ` · ${[t.area, t.city].filter(Boolean).join(', ')}` : ''}
             </p>
             <p className="mt-0.5 text-xs text-gray-400">
@@ -67,6 +67,9 @@ export default async function AdminTutorDetail(props: { params: Promise<{ userId
         )}
 
         <div className="mt-4 divide-y divide-gray-50 border-t border-gray-100 pt-2 dark:divide-gray-800 dark:border-gray-800">
+          <Row label="Phone">
+            {t.phone ? <a href={`tel:${t.phone}`} className="font-semibold text-primary hover:underline">{t.phone}</a> : <span className="text-gray-400">No phone provided{t.status === 'draft' ? ' — saved as a draft, not submitted yet' : ''}</span>}
+          </Row>
           <Row label="Subjects">
             {t.subjects.length ? t.subjects.map((sub) => <span key={sub} className="mb-1 mr-1.5 inline-block rounded-full bg-primary-50 px-2 py-0.5 text-[11px] font-semibold text-primary">{sub}</span>) : '—'}
           </Row>
