@@ -9,9 +9,28 @@ import { BookmarkButton } from '@/components/BookmarkButton';
 import { useLocale } from '@/components/LocaleProvider';
 import { markLessonComplete } from '@/lib/actions/learning';
 import { FileText, ChevronLeft, ChevronRight, CheckCircle2, Send, ArrowRight } from 'lucide-react';
-import { useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import type { Lesson } from '@/lib/types';
 import type { LessonBreadcrumb, NextTopicSuggestion } from '@/lib/queries/lessons';
+
+function ReadingProgress() {
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const el = document.documentElement;
+      const max = el.scrollHeight - el.clientHeight;
+      setWidth(max > 0 ? Math.min(100, (el.scrollTop / max) * 100) : 0);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  return (
+    <div className="fixed inset-x-0 top-0 z-[60] h-1 print:hidden" aria-hidden>
+      <div className="h-full bg-secondary transition-[width] duration-150" style={{ width: `${width}%` }} />
+    </div>
+  );
+}
 
 export function LessonPageContent({
   lesson,
@@ -63,6 +82,7 @@ export function LessonPageContent({
 
   return (
     <div className="pt-4">
+      <ReadingProgress />
       <Breadcrumb items={crumbs} />
       <div className="mt-2 flex items-start justify-between gap-3">
         <h1 className="font-heading text-2xl font-bold leading-tight text-textneutral">{lesson.title}</h1>
