@@ -4,6 +4,7 @@ import './globals.css';
 import 'katex/dist/katex.min.css';
 import { LocaleProvider } from '@/components/LocaleProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { JsonLd } from '@/components/JsonLd';
 import { Navbar } from '@/components/Navbar';
 import { BottomNav } from '@/components/BottomNav';
 import { Footer } from '@/components/Footer';
@@ -22,10 +23,80 @@ const notoEthiopic = Noto_Sans_Ethiopic({
   display: 'swap',
 });
 
+const SITE_TITLE = 'Simplexer — Home Tutors & Lessons in Ethiopia';
+const SITE_DESCRIPTION =
+  'Find trusted home tutors in Addis Ababa and across Ethiopia, and learn school subjects and skills with step-by-step lessons in Amharic and English. የቤት መምህር እና ትምህርት በኢትዮጵያ።';
+
 export const metadata: Metadata = {
-  title: 'Simplexer — All Subjects Is Our Aim',
-  description:
-    'Bilingual (Amharic/English) learning platform for Ethiopia — Grade 9 to university, plus interest-based skills courses.',
+  metadataBase: new URL('https://simplexer-platform.vercel.app'),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  keywords: [
+    'home tutor Ethiopia',
+    'tutor Addis Ababa',
+    'የቤት መምህር',
+    'Ethiopian tutor',
+    'maths tutor Ethiopia',
+    'home tutoring Ethiopia',
+    'learn in Amharic',
+    'Ethiopian school lessons',
+    'Simplexer',
+  ],
+  category: 'education',
+  alternates: { canonical: '/' },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
+  },
+  openGraph: {
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    siteName: 'Simplexer',
+    type: 'website',
+    locale: 'en_ET',
+    url: '/',
+    images: [{ url: '/og.jpg', width: 1200, height: 630, alt: 'Simplexer — home tutors and lessons in Ethiopia' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: ['/og.jpg'],
+  },
+};
+
+const SITE_JSONLD = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': 'https://simplexer-platform.vercel.app/#org',
+      name: 'Simplexer',
+      url: 'https://simplexer-platform.vercel.app/',
+      logo: 'https://simplexer-platform.vercel.app/icon.png',
+      email: 'hello@simplexer.et',
+      description: SITE_DESCRIPTION,
+      areaServed: { '@type': 'Country', name: 'Ethiopia' },
+      sameAs: ['https://t.me/simplexeret', 'https://t.me/simplexer101'],
+    },
+    {
+      '@type': 'WebSite',
+      '@id': 'https://simplexer-platform.vercel.app/#site',
+      name: 'Simplexer',
+      url: 'https://simplexer-platform.vercel.app/',
+      publisher: { '@id': 'https://simplexer-platform.vercel.app/#org' },
+      inLanguage: ['en', 'am'],
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: 'https://simplexer-platform.vercel.app/search?q={search_term_string}',
+        },
+        'query-input': 'required name=search_term_string',
+      },
+    },
+  ],
 };
 
 export const viewport: Viewport = {
@@ -52,7 +123,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="font-body antialiased dark:bg-gray-950 dark:text-gray-100">
-        <ThemeProvider>
+        <JsonLd data={SITE_JSONLD} />
+          <ThemeProvider>
           <LocaleProvider>
             <Navbar />
             <main className="mx-auto min-h-[70vh] max-w-5xl px-4 pb-20 pt-4 sm:pb-8">{children}</main>
