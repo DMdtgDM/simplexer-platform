@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss';
+import typography from '@tailwindcss/typography';
 
 const config: Config = {
   darkMode: 'class',
@@ -37,7 +38,7 @@ const config: Config = {
       animation: { fadeUp: 'fadeUp .5s ease-out both', floaty: 'floaty 6s ease-in-out infinite' },
     },
   },
-  plugins: [],
+  plugins: [typography],
 };
 
 export default config;
