@@ -115,3 +115,10 @@ textarea {
 button {
   touch-action: manipulation;
 }
+
+/* Print: lessons print clean — no site chrome, black on white */
+@media print {
+  header, footer, nav { display: none !important; }
+  body { background: #fff !important; }
+  a { text-decoration: none !important; color: #000 !important; }
+}
