@@ -43,6 +43,7 @@ export const metadata: Metadata = {
     'Simplexer',
   ],
   category: 'education',
+  verification: { google: 'eHHnyvlcI-kNz7PCQ3YCc5xY3L1kYVG6sVDpa32VOA0' },
   alternates: { canonical: '/' },
   robots: {
     index: true,
