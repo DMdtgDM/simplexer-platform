@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { JsonLd } from '@/components/JsonLd';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createPublicClient } from '@/lib/supabase/public';
@@ -95,8 +96,35 @@ export default async function JobPage(
     for (const tp of tps ?? []) tutorStatus.set(tp.user_id, tp.status);
   }
 
+  const jobPosting = {
+    '@context': 'https://schema.org',
+    '@type': 'JobPosting',
+    title: `${job.subject} Tutor${job.grade ? ` (${job.grade})` : ''}`,
+    description: job.description,
+    datePosted: job.created_at,
+    employmentType: 'PART_TIME',
+    hiringOrganization: {
+      '@type': 'Organization',
+      name: 'Simplexer',
+      sameAs: 'https://simplexer-platform.vercel.app',
+    },
+    ...(job.mode === 'In person'
+      ? {
+          jobLocation: {
+            '@type': 'Place',
+            address: {
+              '@type': 'PostalAddress',
+              addressLocality: [job.area, job.city].filter(Boolean).join(', ') || 'Addis Ababa',
+              addressCountry: 'ET',
+            },
+          },
+        }
+      : { jobLocationType: 'TELECOMMUTE', applicantLocationRequirements: { '@type': 'Country', name: 'Ethiopia' } }),
+  };
+
   return (
     <div className="pt-6">
+      <JsonLd data={jobPosting} />
       <Link href="/jobs" className="text-xs text-gray-500">
         {t('allJobs')}
       </Link>
